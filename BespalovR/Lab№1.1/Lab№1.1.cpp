@@ -33,7 +33,7 @@ class RationalNum {
 	unsigned int denominator;
 	//Сокращение дроби
 	void reduce() {
-		unsigned int t = gcd(abs(numerator), denominator);
+		unsigned int t = gcd(numerator * sgn(numerator), denominator);
 		numerator /= (int)t;
 		denominator /= t;
 	}
@@ -67,7 +67,7 @@ public:
 	//Исправленное деление.Неявное приведение между знаковым и беззнаковым целым ненадёжно работает.
 	RationalNum operator / (const RationalNum& rn) const {
 		if (sgn(rn.numerator) != 0) {
-					return RationalNum(numerator * (int)rn.denominator * rn.numerator / abs(rn.numerator), denominator * (unsigned int)abs(rn.numerator));
+					return RationalNum(numerator * (int)rn.denominator * sgn(rn.numerator), denominator * (unsigned int)(rn.numerator * sgn(rn.numerator)));
 		}
 		cout << "#DIV/0!\n";
 	}
@@ -91,7 +91,7 @@ ostream& operator << (ostream& os, const RationalNum& rn) {
 
 //main. Можно проверить корректность операций и поискать ошибки.
 int main() {
-	RationalNum a(3, 5);
+	RationalNum a(-3, 5);
 	RationalNum b(11, 7);
 	cout << a + b << '\n';
 	cout << a - b << '\n';
