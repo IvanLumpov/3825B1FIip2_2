@@ -4,68 +4,52 @@
 
 using namespace std;
 
-bool prov_action(int s) {
-	if (s >= 0 && s <= 4) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 class clocks {
-private: 
-	int sec, min, hours;
-	int sec0, min0, hours0;
+private:
+	unsigned sec, min, hours;
 
 public:
-	clocks() {
-		sec = rand() % 60;
-		min = rand() % 60;
-		hours = rand() % 24;
-		sec0 = sec;
-		min0 = min;
-		hours0 = hours;
-	}
+
+	clocks() : hours(12), min(0), sec(0) {}
 
 	void install_time() {
-		short c = 0;
+		bool c = false;
 		cout << "Enter seconds (0-59): " << '\n';
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
-			c++;
+			c = true;
 			cin >> sec;
 		} while (sec < 0 || sec >= 60);
 
-		c = 0;
+		c = false;
 		cout << "Enter minutes (0-59): " << '\n';
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
-			c++;
+			c = true;
 			cin >> min;
 		} while (min < 0 || min >= 60);
 
-		c = 0;
+		c = false;
 		cout << "Enter hours (0-23): " << '\n';
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
-			c++;
+			c = true;
 			cin >> hours;
 		} while (hours < 0 || hours >= 24);
 		cout << "The time was set successfully" << '\n';
 	}
 
-	void print_time() {
+	void print_time() const {
 		cout << "Time now: " << hours << " hours " << min << " minutes " << sec << " seconds\n";
 	}
 
-	void difference() {
+	void difference(unsigned hours0, unsigned min0, unsigned sec0) const {
 		int ins = hours * 3600 + min * 60 + sec;
 		int zd = hours0 * 3600 + min0 * 60 + sec0;
 		int dif = abs(ins - zd);
@@ -77,48 +61,83 @@ public:
 		cout << "The difference is " << dhours << " hours " << dmin << " minutes " << dsec << " seconds\n";
 	}
 
+	void difference() const {
+		unsigned hours0, min0, sec0;
+		bool c = false;
+		cout << "Enter seconds (0-59): " << '\n';
+		do {
+			if (c) {
+				cout << "Input error! Try again\n";
+			}
+			c = true;
+			cin >> sec0;
+		} while (sec0 < 0 || sec0 >= 60);
+
+		c = false;
+		cout << "Enter minutes (0-59): " << '\n';
+		do {
+			if (c) {
+				cout << "Input error! Try again\n";
+			}
+			c = true;
+			cin >> min0;
+		} while (min0 < 0 || min0 >= 60);
+
+		c = false;
+		cout << "Enter hours (0-23): " << '\n';
+		do {
+			if (c) {
+				cout << "Input error! Try again\n";
+			}
+			c = true;
+			cin >> hours0;
+		} while (hours0 < 0 || hours0 >= 24);
+
+		difference(hours0, min0, sec0);
+	}
+
 	void sdv() {
 		char s;
-		short c = 0;
+		bool c = false;
 		cout << "Choose which way the time shift will be: '+' or '-'\n";
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
 			cin >> s;
-			c += 1;
+			c = true;
 		} while (s != '+' && s != '-');
 
-		c = 0;
+		c = false;
 		int h, m, sc;
 
 		cout << "How much hours to set the offset:\n";
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
 			cin >> h;
-			c += 1;
+			c = true;
 		} while (h < 0);
 
-		c = 0;
+		c = false;
 		cout << "How much minutes to set the offset:\n";
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
 			cin >> m;
-			c += 1;
+			c = true;
 		} while (m < 0);
 
-		c = 0;
+		c = false;
 		cout << "How much seconds to set the offset:\n";
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
 			cin >> sc;
-			c += 1;
+			c = true;
 		} while (sc < 0);
 
 		int totalsec = hours * 3600 + min * 60 + sec;
@@ -147,39 +166,38 @@ public:
 
 int main() {
 	srand(time(nullptr));
-	
+
 	int s;
 	clocks tim;
-	short c = 0;
+	bool c = false;
 	do {
 		cout << "Select an action: \n" << "1. Set the time\n" << "2. Find out the time\n" << "3. Calculate the difference between the set time and the set time\n"
 			<< "4. Shift the time by a preset offset\n" << "0. Exit\n" << '\n';
 		do {
-			if (c >= 1) {
+			if (c) {
 				cout << "Input error! Try again\n";
 			}
 			cin >> s;
-			c += 1;
-		} while (!prov_action(s));
-		
-		c = 0;
+			c = true;
+		} while (!(s >= 0 && s <= 4));
+
+		c = false;
 
 		switch (s) {
-		case 1: 
+		case 1:
 			tim.install_time();
 			break;
-		case 2: 
+		case 2:
 			tim.print_time();
 			break;
-		case 3: 
+		case 3:
 			tim.difference();
 			break;
-		case 4: 
+		case 4:
 			tim.sdv();
 			break;
 		default: break;
 		}
-		
 		cout << '\n';
 	} while (s != 0);
 }
