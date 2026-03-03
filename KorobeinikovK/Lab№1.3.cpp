@@ -1,10 +1,11 @@
 #include <iostream>
 #include <cstdlib>
-using namespace std;
+using std::cout;
+using std::cin;
 class Time {
 private:
-int hours, minutes, seconds;
-bool Err(int h, int m, int s) {
+unsigned int hours, minutes, seconds;
+bool Err(int h, int m, int s) const {
 	return (h >= 0 && h < 24) && (m >= 0 && m < 60) && (s >= 0 && s < 60);
 }
 void norm() {
@@ -19,18 +20,37 @@ void norm() {
 }
 public:
 	Time(int h = 0, int m = 0, int s = 0) :hours(h), minutes(m), seconds(s) {
+		if (!Err(h, m, s)) {
+			cout << "Error:incorrect time" << '\n';
+			cout << "Repeat input" << '\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "seconds: ";
+			cin >> s;
+		}
+		hours = h;
+		minutes = m;
+		seconds = s;
 	};
 	void SetTime(int h, int m, int s) {
 		if (!Err(h, m, s)) {
 			cout << "Error:incorrect time" << '\n';
-			exit(1);
+			cout << "Repeat input" << '\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "seconds: ";
+			cin >> s;
 		}
 		hours = h;
 		minutes = m;
 		seconds = s;
 	}
 	
-	void print() {
+	void print() const {
 		if (hours < 10) {
 			cout << '0';
 		}
@@ -44,7 +64,7 @@ public:
 		}
 		cout << seconds << '\n';
 	}
-	void Difference(Time& other) {
+	void Difference(const Time& other) const {
 		int Sec = hours * 3600 + minutes * 60 + seconds;
 		int Oth_Sec = other.hours * 3600 + other.minutes * 60 + other.seconds;
 		int diffsec = Oth_Sec - Sec;
@@ -81,29 +101,97 @@ public:
 	}
 };
 int main() {
-	Time t1(12, 30, 45);
-	cout << "t1 = ";
-	t1.print();
+	int ch, h, m, s;
+	cout << "=== Working with time ===" << '\n';
+	cout << "Hours: ";
+	cin >> h;
+	cout << "Minutes: ";
+	cin >> m;
+	cout << "Seconds: ";
+	cin >> s;
+	Time t1(h, m, s);
+	do {
+		cout << "Menu:" << '\n';
+		cout << "1.Show current time" << '\n';
+		cout << "2.Set a new time" << '\n';
+		cout << "3.Calculate the time difference" << '\n';
+		cout << "4.Add shift" << '\n';
+		cout << "5.Subtract shift" << '\n';
+		cout << "0.exit" << '\n';
+		cout << "Select an action: ";
+		cin >> ch;
+		switch (ch) {
+		case 1:
+			cout << "Current time: ";
+			t1.print();
+			cout << '\n';
+			break;
 
-	Time t2;
-	t2.SetTime(8, 13, 10);
-	cout << "Difference (t2 - t1) = ";
-	t1.Difference(t2);
+		case 2: {
+			cout << "Enter a new time:"<<'\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "Seconds: ";
+			cin >> s;
+			t1.SetTime(h, m, s);
+			cout << "The time is set: ";
+			t1.print();
+			cout << '\n';
+			break;
+		}
 
-	t1.add(2, 10, 1);
-	cout << "t1 shift +02:10:01 = ";
-	t1.print();
+		case 3: {
+			cout << "Enter time to compare:"<<'\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "Seconds: ";
+			cin >> s;
+			Time t2(h, m, s);
+			cout << "Difference (t2 - t1) = ";
+			t1.Difference(t2);
+			cout << '\n';
+			break;
+		}
 
-	t1.sub(1, 33, 0);
-	cout << "t1 shift -01:33:00 = ";
-	t1.print();
+		case 4: {
+			cout << "Enter shift:"<<'\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "Seconds: ";
+			cin >> s;
+			t1.add(h, m, s);
+			cout << "New time: ";
+			t1.print();
+			cout << '\n';
+			break;
+		}
 
-	Time t3(23, 50, 59);
-	t3.add(5, 15, 25);
-	cout << "t3 shift + 05:15:25 = ";
-	t3.print();
+		case 5: {
+			cout << "Enter shift:"<<'\n';
+			cout << "Hours: ";
+			cin >> h;
+			cout << "Minutes: ";
+			cin >> m;
+			cout << "Seconds: ";
+			cin >> s;
+			t1.sub(h, m, s);
+			cout << "New time: ";
+			t1.print();
+			cout << '\n';
+			break;
+		}
+		case 0:
+			cout << "End"<<'\n';
+			break;
 
-	t3.sub(0, 10, 53);
-	cout << "t3 shift -00:10:53 = ";
-	t3.print();
+		default:
+			cout << "Incorrect selection. Try again"<<'\n';
+		}
+	} while (ch != 0);
 }
