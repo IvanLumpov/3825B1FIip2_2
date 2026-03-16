@@ -1,45 +1,71 @@
 #include <iostream>
-#include <vector>
 #include <cmath>
 using std::cout;
 using std::cin;
 using std::cerr;
-using std::vector;
 
 class Polynomial {
 private:
-	vector<double> cf;
+	double* cf;
+    int deg;
+    void Copy(const double* orig, int dg) {
+        deg = dg;
+        cf = new double[deg + 1];
+        for (int i = 0; i <= deg; ++i) {
+            cf[i] = orig[i];
+        }
+    }
 public:
     Polynomial(){
-        cf.resize(1);
+        deg = 0;
+        cf = new double[1];
         cf[0] = 0.0;
     }
-    explicit Polynomial(int deg) {
-        cf.assign(deg + 1, 0.0);
+    explicit Polynomial(int dg) {
+        deg = dg;
+        cf = new double[deg+1];
+        for (int i = 0; i <= deg; ++i) {
+            cf[i]=0.0;
+        }
     }
-    Polynomial(const Polynomial& other) : cf(other.cf) {}
-    ~Polynomial(){}
+    Polynomial(const Polynomial& other) {
+        Copy(other.cf, other.deg);
+    }
+    ~Polynomial(){
+        delete[] cf;
+    }
     Polynomial& operator=(const Polynomial& other) {
         if (this != &other) {
-            cf = other.cf;
+            delete[] cf;
+            Copy(other.cf, other.deg);
         }
         return *this;
     }
     void SetDeg(int nd){
-        cf.assign(nd + 1, 0.0);
+        delete[] cf;
+        deg = nd;
+        cf = new double[deg + 1];
+        for (int i = 0; i <= deg; ++i) {
+            cf[i] = 0.0;
+        }
     }
     void SetCf(int ind, double val){
-        cf[ind] = val;
+        if (ind >= 0 && ind <= deg) {
+            cf[ind] = val;
+        }
     }
     int GetDeg() const {
-        return (int)(cf.size()) - 1;
+        return deg;
     }
-    double GetCf(int ind){
-        return cf[ind];
+    double GetCf(int ind) {
+        if (ind>=0 && ind<=deg) {
+            return cf[ind];
+        }
+        return 0.0;
     }
     double CalcVal(double x) const {
         double res = 0.0;
-        for(int i = cf.size()-1;i >= 0;--i){
+        for(int i = deg;i >= 0;--i){
             res = res * x + cf[i];
         }
         return res;
@@ -60,7 +86,7 @@ public:
     void print() const {
         const char* list_deg[] = {"", "x", "x^2", "x^3", "x^4", "x^5", "x^6", "x^7", "x^8", "x^9", "x^10", "x^11", "x^12"};
         bool fst = true;
-        for (int i = cf.size() - 1; i >= 0; --i) {
+        for (int i = deg; i >= 0; --i) {
             double c = cf[i];
             if (c == 0) {
                 continue;
@@ -120,7 +146,7 @@ int main() {
         case 2: {
             int deg = p.GetDeg();
             cout << "Enter " << deg + 1 << " coefficients from lowest to highest degree:\n";
-            vector<double> cf(deg + 1);
+            double* cf = new double[deg + 1];
             for (int i = 0; i <= deg; ++i) {
                 cout << "Coefficient for x^" << i << ": ";
                 while (!(cin >> cf[i])) {
@@ -132,6 +158,7 @@ int main() {
             for (int i = 0; i <= deg; ++i) {
                 p.SetCf(i, cf[i]);
             }
+            delete[] cf;
             cout << "Coefficients set.\n";
             break;
         }
