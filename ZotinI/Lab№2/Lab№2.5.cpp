@@ -1,24 +1,16 @@
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
 using std::cout;
 using std::cin;
 using std::ostream;
 
 
-void copy(float* arr, float* arr1, size_t n) {
-	for (size_t i = 0; i < n; ++i) {
-		arr[i] = arr1[i];
-	}
-}
-
 class arr {
 private:
 	size_t n;
-	size_t pr;
-	bool is_parr = false;
 	float* array;
-	float* parr;
 public:
 	arr(size_t k = 6) {
 		n = k;
@@ -26,38 +18,22 @@ public:
 		for (size_t i = 0; i < n; ++i) {
 			array[i] = (float)(rand() / (float)RAND_MAX) * 100 + 10;
 		}
-		pr = ceil(n / 2.0);
-		parr = new float[pr];
 	}
 
 	arr& operator=(const arr& other) {
 		if (this != &other) {
 			delete[] array;
-			delete[] parr;
-
-			pr = other.pr;
 			n = other.n;
-			is_parr = other.is_parr;
 
 			array = new float[n];
-			copy(array, other.array, n);
-
-			parr = new float[pr];
-			if (other.is_parr) {
-				copy(parr, other.parr, pr);
-			}
+			memcpy(array, other.array, n * sizeof(float));
 		}
 		return *this;
 	}
 
-	arr(const arr& other) : n(other.n), pr(other.pr), is_parr(other.is_parr) {
+	arr(const arr& other) : n(other.n) {
 		array = new float[n];
-		copy(array, other.array, n);
-
-		parr = new float[pr];
-		if (is_parr) {
-			copy(parr, other.parr, pr);
-		}
+		memcpy(array, other.array, n * sizeof(float));
 	}
 
 	void install_size() {
@@ -65,32 +41,38 @@ public:
 		do {
 			cout << "Enter size:\n";
 			cin >> k;
-		} while (k < 1 || k > 30);
+		} while (k < 1);
 
-		float* ar = new float[n];
-		copy(ar, array, n);
-		delete[] array;
+		if (n == k) {
+			cout << "Size unchanged\n";
+			return;
+		}
 
-		array = new float[k];
-		if (n <= k) {
-			copy(array, ar, n);
-			for (size_t j = n; j < k; ++j) {
-				array[j] = (float)(rand() / (float)RAND_MAX) * 100 + 10;
-			}
+		float* p = new float[k];
+
+		size_t sz;
+		if (n < k) {
+			sz = n;
 		}
 		else {
-			copy(array, ar, k);
+			sz = k;
 		}
-		delete[] ar;
+		memcpy(p, array, sz * sizeof(float));
+
+		if (k > n) {
+			for (size_t j = n; j < k; ++j) {
+				p[j] = 0.0f;
+			}
+		}
+		delete[] array;
+		array = p;
 		n = k;
 
-		delete[] parr;
-		parr = new float[ceil(n / 2.0)];
-		is_parr = false;
+		cout << "Size changed to " << n << '\n';
 	}
 
-	void size() {
-		cout << "Size of the array: " << n << '\n';
+	size_t size() const {
+		return n;
 	}
 
 	friend ostream& operator<<(ostream& stream, const arr& a) {
@@ -102,79 +84,55 @@ public:
 		return stream;
 	}
 
-	void zadanie() {
-		size_t u;
-		do {
-			cout << "Enter index:\n";
-			cin >> u;
-		} while (u < 0 || u >= n);
-		float a;
-		cout << "Enter number:\n";
-		cin >> a;
-		array[u] = a;
-		cout << "The operation was completed successfully\n";
-
+	float& operator[](size_t ind) {
+		return array[ind];
 	}
 
-	void el_index() {
-		size_t u;
-		do {
-			cout << "Enter index:\n";
-			cin >> u;
-		} while (u < 0 || u >= n);
-		cout << "The element by index: " << array[u] << '\n';
-	}
-
-	void min() {
+	float min() const {
 		float m = array[0];
 		for (size_t k = 1; k < n; ++k) {
 			if (m > array[k]) {
 				m = array[k];
 			}
 		}
-		cout << "Minimal element: " << m << '\n';
+		return m;
 	}
 
-
-	void is_sort() {
-		bool fl = false;
+	bool is_sort() const {
 		for (size_t i = 0; i < n - 1; ++i) {
 			if (array[i] > array[i + 1]) {
-				cout << "The array is unordered\n";
-				fl = true;
-				break;
+				return false;
 			}
 		}
-		if (!fl) {
-			cout << "The array is ordered\n";
-		}
+		return true;
 	}
 
-	void podarr() {
-		size_t l = 0;
-		is_parr = true;
-		cout << "Elements at odd indexes: ";
-		for (size_t k = 0; k < n; ++k) {
-			if (k % 2 != 0) {
-				parr[l] = array[k];
-				cout << parr[l] << ' ';
-				l++;
-			}
+	float* odd_indexed() const {
+		size_t res_size = n / 2;
+		if (res_size == 0) {
+			return nullptr;
 		}
-		cout << '\n';
+		float* result = new float[res_size];
+
+		for (size_t i = 1; i < n; i += 2) {
+			result[i] = array[2 * i + 1];
+		}
+		return result;
 	}
 
 	~arr() {
 		delete[] array;
-		delete[] parr;
 	}
-
 };
 
 int main() {
 	srand(time(nullptr));
 	int c;
 	arr a;
+
+	size_t index, ind;
+	float val;
+	float* odd_array = nullptr;
 	do {
 		cout << "Choice operation: \n1. set the size of the array\n" <<
 			"2. find out the size of the array\n" <<
@@ -188,22 +146,55 @@ int main() {
 			a.install_size();
 			break;
 		case 2:
-			a.size();
+			cout << "Size of the array: " << a.size() << '\n';
 			break;
 		case 3:
-			a.zadanie();
+			cout << "Enter index: ";
+			cin >> index;
+			if (index < a.size()) {
+				cout << "Enter value: ";
+				cin >> val;
+				a[index] = val;
+				cout << "Operation completed successfully\n";
+			}
+			else {
+				cout << "Index out of range\n";
+			}
 			break;
 		case 4:
-			a.el_index();
+			cout << "Enter index: ";
+			cin >> ind;
+			if (ind < a.size()) {
+				cout << "Element at index: " << a[ind] << '\n';
+			}
+			else {
+				cout << "Index out of range\n";
+			}
 			break;
 		case 5:
-			a.min();
+			cout << "Minimal element: " << a.min() << '\n';
 			break;
 		case 6:
-			a.is_sort();
+			if (a.is_sort()) {
+				cout << "The array is ordered\n";
+			}
+			else {
+				cout << "The array is unordered\n";
+			}
 			break;
 		case 7:
-			a.podarr();
+			odd_array = a.odd_indexed();
+			if (odd_array) {
+				cout << "Elements at odd indexes: ";
+				for (size_t i = 0; i < ceil(a.size() / 2); ++i) {
+					cout << odd_array[i] << ' ';
+				}
+				cout << '\n';
+				delete[] odd_array;
+			}
+			else {
+				cout << "No elements with odd indexes\n";
+			}
 			break;
 		case 8:
 			cout << a;
