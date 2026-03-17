@@ -26,14 +26,14 @@ public:
 			n = other.n;
 
 			array = new float[n];
-			memcpy(array, other.array, n * sizeof(float));
+			memcpy(array, other.array, n*sizeof(float));
 		}
 		return *this;
 	}
 
 	arr(const arr& other) : n(other.n) {
 		array = new float[n];
-		memcpy(array, other.array, n * sizeof(float));
+		memcpy(array, other.array, n*sizeof(float));
 	}
 
 	void install_size() {
@@ -58,7 +58,7 @@ public:
 			sz = k;
 		}
 		memcpy(p, array, sz * sizeof(float));
-
+		
 		if (k > n) {
 			for (size_t j = n; j < k; ++j) {
 				p[j] = 0.0f;
@@ -88,6 +88,10 @@ public:
 		return array[ind];
 	}
 
+	const float& operator[](size_t ind) const {
+		return array[ind];
+	}
+
 	float min() const {
 		float m = array[0];
 		for (size_t k = 1; k < n; ++k) {
@@ -108,14 +112,14 @@ public:
 	}
 
 	float* odd_indexed() const {
-		size_t res_size = n / 2;
+		size_t res_size = n/ 2;
 		if (res_size == 0) {
 			return nullptr;
 		}
 		float* result = new float[res_size];
 
-		for (size_t i = 1; i < n; i += 2) {
-			result[i] = array[2 * i + 1];
+		for (size_t i = 0; i < res_size; ++i) {
+			result[i] = array[2*i + 1];
 		}
 		return result;
 	}
@@ -182,7 +186,7 @@ int main() {
 				cout << "The array is unordered\n";
 			}
 			break;
-		case 7:
+		case 7: 
 			odd_array = a.odd_indexed();
 			if (odd_array) {
 				cout << "Elements at odd indexes: ";
