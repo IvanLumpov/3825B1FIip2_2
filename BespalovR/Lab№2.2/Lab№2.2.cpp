@@ -1,10 +1,12 @@
 //Библиотеки и пространства имён.
 #include <iostream>
 using std::ostream;
+using std::string;
+using std::endl;
 using std::cout;
 using std::cin;
 
-//Я пытался, но не сообразил как сделать обработку ошибок с помощью throw, try, catch.Общий принцип понятен. Однако не хватило конкретного примера.
+
 //Класс полинома.
 class Polynom {
 private:
@@ -23,7 +25,8 @@ public:
     //Конструктор от степени.
     Polynom(int n): degree(n), coefficients(new double[n + 1]) {
         if (n < 0 || n > 12) {
-            cout << "ERR:Degree of the polynomial must be in [0,12].\n";
+            string error("ERR:Degree of the polynomial must be in [0,12].\n");
+            throw error;
         }
         for (int i = 0; i <= n; ++i) {
             coefficients[i] = 0;
@@ -31,8 +34,7 @@ public:
     }
 
     //Конструктор копирования.
-    Polynom(const Polynom& other)
-        : degree(other.degree), coefficients(new double[other.degree + 1]) {
+    Polynom(const Polynom& other) : degree(other.degree), coefficients(new double[other.degree + 1]) {
         for (int i = 0; i <= degree; ++i) {
             coefficients[i] = other.coefficients[i];
         }
@@ -46,7 +48,8 @@ public:
     //Сеттер степени полинома.
     void SetDegree(int n) {
         if (n < 0 || n > 12) {
-            cout << "ERR:Degree of the polynomial must be in [0,12].\n";
+            string error("ERR:Degree of the polynomial must be in [0,12].\n");
+            throw error;
         }
         delete[] coefficients;
         degree = n;
@@ -56,25 +59,9 @@ public:
         }
     }
 
-    //Сеттер коэффициентов полинома.
-    void SetCoefficient(int index, double value) {
-        if (index < 0 || index > degree) {
-            cout << "ERR:Index out of range.\n";
-        }
-        coefficients[index] = value;
-    }
-
     //Геттер степени.
     int GetDegree() const {
         return degree;
-    }
-
-    //Геттер коэффициента по номеру.
-    double GetCoefficient(int index) const {
-        if (index < 0 || index > degree) {
-            cout << "ERR:Index out of range.\n";
-        }
-        return coefficients[index];
     }
 
     //Вычисление значения в точке.
@@ -93,7 +80,7 @@ public:
         }
         Polynom result(degree - 1);
         for (int i = 1; i <= degree; ++i) {
-            result.SetCoefficient(i - 1, coefficients[i] * i);
+            result[i - 1]= coefficients[i] * i;
         }
         return result;
     }
@@ -111,49 +98,74 @@ public:
         return *this;
     }
 
-    //Перегрузка вывода. (Я смог вставить перегрузку вывода внутрь класса.)
-    friend ostream& operator << (ostream& os, const Polynom& p) {
-        bool first = true;
-        for (int i = p.degree; i >= 0; --i) {
-            if (p.coefficients[i] != 0) {
-                if (!first && p.coefficients[i] > 0) {
-                    os << "+";
-                }
-                else if (p.coefficients[i] < 0) {
-                    os << "-";
-                }
-                double abs_coef = abs(p.coefficients[i]);
-                if (i == 0 || abs_coef != 1) {
-                    os << abs_coef;
-                }
-                if (i > 0) {
-                    os << "x";
-                    if (i > 1) {
-                        os << "^" << i;
-                    }
-                }
-                first = false;
-            }
+    //Перегрузка []. Две версии для получения и присваивания значения.
+    double& operator[](int index) {
+        if (index < 0 || index > degree) {
+            string error("ERR: Index out of range.");
+            throw error;
         }
-        if (first) {
-            os << "0";
-        }
-        os << '\n';
-        return os;
+        return coefficients[index];
     }
+
+    const double& operator[](int index) const {
+        if (index < 0 || index > degree) {
+            string error("ERR: Index out of range.");
+            throw error;
+        }
+        return coefficients[index];
+    }
+
+    //Перегрузка вывода.
+    friend ostream& operator << (ostream& os, const Polynom& p);
 };
+
+
+ostream& operator << (ostream& os, const Polynom& p) {
+    bool first = true;
+    for (int i = p.degree; i >= 0; --i) {
+        if (p.coefficients[i] != 0) {
+            if (!first && p.coefficients[i] > 0) {
+                os << "+";
+            }
+            else if (p.coefficients[i] < 0) {
+                os << "-";
+            }
+            double abs_coef = abs(p.coefficients[i]);
+            if (i == 0 || abs_coef != 1) {
+                os << abs_coef;
+            }
+            if (i > 0) {
+                os << "x";
+                if (i > 1) {
+                    os << "^" << i;
+                }
+            }
+            first = false;
+        }
+    }
+    if (first) {
+        os << "0";
+    }
+    os << endl;
+    return os;
+}
 
 
 //Демонстрация примеров использования класса.
 int main() {
-    int k = 5;
-    Polynom p(k);
-    for (int i = 0; i <= k; ++i) {
-        p.SetCoefficient(i, -1*(double)i);
-        cout << p.GetCoefficient(i)<<'\n';
+    try {
+        int k = 5;
+        Polynom p(k);
+        for (int i = 0; i <= k; ++i) {
+            p[i] = -1 * (double)i;
+            cout << p[i] << '\n';
+        }
+        cout << p << p.Calculate(4) << '\n' << p.Derivative();
+        Polynom b = p;
+        b.SetDegree(p.GetDegree());
+        Polynom a(b);
     }
-    cout << p << p.Calculate(4)<< '\n' << p.Derivative();
-    Polynom b = p;
-    b.SetDegree(p.GetDegree());
-    Polynom a(b);
+    catch (const string& e) {
+        std::cerr << e << endl;
+    }
 }
