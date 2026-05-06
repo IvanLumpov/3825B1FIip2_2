@@ -1,7 +1,5 @@
 ﻿#include <iostream>
 #include <fstream>
-#include <cstring>
-#include <cstdlib>
 
 struct Date {
     int day;
@@ -31,33 +29,36 @@ private:
     Date startDate;
     Time startTime;
 
-    bool isLeapYear(int year) const {
-        if (year % 400 == 0) return true;
-        if (year % 100 == 0) return false;
-        if (year % 4 == 0) return true;
-        return false;
-    }
-
-    int daysInMonth(int month, int year) const {
+    int daysInMonth(int month) const {
         int days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-        if (month == 2 && isLeapYear(year)) {
-            return 29;
-        }
-
         return days[month - 1];
     }
 
     int dateToDayIndex(const Date& date) const {
-        int dayIndex = 0;
+        return daysBetween(startDate, date);
+    }
 
-        for (int m = 1; m < date.month; ++m) {
-            dayIndex += daysInMonth(m, date.year);
+    int daysBetween(const Date& from, const Date& to) const {
+        int daysFrom = 0;
+        for (int m = 1; m < from.month; ++m) {
+            daysFrom += daysInMonth(m);
         }
+        daysFrom += (from.day - 1);
+        daysFrom += from.year * 365;
 
-        dayIndex += (date.day - 1);
+        int daysTo = 0;
+        for (int m = 1; m < to.month; ++m) {
+            daysTo += daysInMonth(m);
+        }
+        daysTo += (to.day - 1);
+        daysTo += to.year * 365;
 
-        return dayIndex;
+        return daysTo - daysFrom;
+    }
+
+    bool isDateInRange(const Date& date) const {
+        int diff = daysBetween(startDate, date);
+        return (diff >= 0 && diff < MAX_DAYS);
     }
 
     bool isValidDate(const Date& date) const {
@@ -65,7 +66,7 @@ private:
             return false;
         if (date.month < 1 || date.month > 12)
             return false;
-        if (date.day < 1 || date.day > daysInMonth(date.month, date.year))
+        if (date.day < 1 || date.day > daysInMonth(date.month))
             return false;
         return true;
     }
@@ -75,24 +76,38 @@ private:
     }
 
     Date dayIndexToDate(int dayIndex) const {
-        Date result;
-        result.year = startDate.year;
-        result.month = 1;
+        Date result = startDate;
+        int remaining = dayIndex;
 
-        while (dayIndex >= daysInMonth(result.month, result.year)) {
-            dayIndex -= daysInMonth(result.month, result.year);
-            ++result.month;
+        while (remaining > 0) {
+            int daysInCurrentMonth = daysInMonth(result.month);
+
+            if (result.day + remaining <= daysInCurrentMonth) {
+                result.day += remaining;
+                remaining = 0;
+            }
+            else {
+                remaining -= (daysInCurrentMonth - result.day + 1);
+                result.day = 1;
+
+                if (result.month == 12) {
+                    result.month = 1;
+                    ++result.year;
+                }
+                else {
+                    ++result.month;
+                }
+            }
         }
 
-        result.day = dayIndex + 1;
         return result;
     }
 
     void allocateHistory() {
-        history = new Observation * *[totalDays];
+        history = new Observation**[totalDays];
 
         for (int i = 0; i < totalDays; ++i) {
-            history[i] = new Observation * [HOURS_PER_DAY];
+            history[i] = new Observation*[HOURS_PER_DAY];
 
             for (int j = 0; j < HOURS_PER_DAY; ++j) {
                 history[i][j] = nullptr;
@@ -200,6 +215,7 @@ public:
 
         startDate = date;
         startTime = time;
+        totalDays = MAX_DAYS;
 
         allocateHistory();
 
@@ -240,13 +256,13 @@ public:
             return;
         }
 
-        int dayIndex = dateToDayIndex(date);
-
-        if (dayIndex < 0 || dayIndex >= totalDays) {
+        if (!isDateInRange(date)) {
+            Date endDate = dayIndexToDate(MAX_DAYS - 1);
             std::cout << "Error: date is out of range\n" << std::endl;
             return;
         }
 
+        int dayIndex = dateToDayIndex(date);
         int hourIndex = time.hour;
 
         if (history[dayIndex][hourIndex] != nullptr) {
@@ -309,7 +325,7 @@ public:
 
         int dayIndex = dateToDayIndex(date);
 
-        if (dayIndex < 0 || dayIndex >= totalDays) {
+        if (!isDateInRange(date)) {
             std::cout << "Error: date is out of range\n" << std::endl;
             return;
         }
@@ -351,7 +367,7 @@ public:
 
         int dayIndex = dateToDayIndex(date);
 
-        if (dayIndex < 0 || dayIndex >= totalDays) {
+        if (!isDateInRange(date)) {
             std::cout << "Error: date is out of range\n" << std::endl;
             return;
         }
@@ -526,8 +542,8 @@ public:
 
             int dayIndex = dateToDayIndex(d);
 
-            if (dayIndex < 0 || dayIndex >= totalDays) {
-                std::cout << "Warning: date is out of range was skipped." << std::endl;
+            if (!isDateInRange(d)) {
+                std::cout << "Warning: date is out of range, obs was sskipped\n" << std::endl;
                 continue;
             }
 
